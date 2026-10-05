@@ -137,6 +137,10 @@
       font-weight: bold;
       font-size: 13px;
     }
+    .btn-send:disabled {
+      background-color: #a0aec0;
+      cursor: not-allowed;
+    }
     footer {
       margin-top: 6px;
       padding-top: 6px;
@@ -155,9 +159,9 @@
     <div class="header-title">
       <span id="roomTitle">🗣️ גשר שפות עברית רוסית – חדר שיחה רגעי</span>
       <div class="admin-controls">
-        <button id="adminBtn" class="btn-admin" onclick="unlockAdmin()">🔐 מנהל</button>
-        <button id="newRoomBtn" class="btn-new-room" onclick="createNewRoomLink()">🔗 צור קישור לשיחה חדשה</button>
-        <button id="resetBtn" class="btn-reset" onclick="resetChat()">🗑️ נקה חדר</button>
+        <button id="adminBtn" class="btn-admin">🔐 מנהל</button>
+        <button id="newRoomBtn" class="btn-new-room">🔗 צור קישור לשיחה חדשה</button>
+        <button id="resetBtn" class="btn-reset">🗑️ נקה חדר</button>
       </div>
     </div>
 
@@ -171,13 +175,13 @@
       <div class="input-controls">
         <div class="lang-selector">
           <span>שפת ההקלדה שלי:</span>
-          <label><input type="radio" name="chatLang" value="he" checked onclick="setLang('he')"> 🇮🇱 עברית</label>
-          <label><input type="radio" name="chatLang" value="ru" onclick="setLang('ru')"> 🇷🇺 Русский</label>
+          <label><input type="radio" name="chatLang" value="he" checked> 🇮🇱 עברית</label>
+          <label><input type="radio" name="chatLang" value="ru"> 🇷🇺 Русский</label>
         </div>
       </div>
       <div class="input-row">
-        <textarea id="mainInput" placeholder="הקלד משפט בעברית..." dir="rtl" onkeydown="checkSubmit(event)"></textarea>
-        <button class="btn-send" onclick="sendText()">שלח 🚀</button>
+        <textarea id="mainInput" placeholder="הקלד משפט בעברית..." dir="rtl"></textarea>
+        <button id="sendBtn" class="btn-send">שלח 🚀</button>
       </div>
     </div>
 
@@ -244,7 +248,7 @@
       return clientColorMap[id];
     }
 
-    // 🟢 האזנה בזמן אמת להודעות (Real-time listener)
+    // 🟢 האזנה בזמן אמת להודעות
     const roomRef = collection(db, "rooms", currentRoom, "messages");
     const q = query(roomRef, orderBy("createdAt", "asc"));
 
@@ -256,20 +260,22 @@
       renderChat(messages);
     });
 
-    // 🌐 פונקציית תרגום חינמית
+    // 🌐 פונקציית תרגום
     async function translateText(text, sourceLang, targetLang) {
       try {
         const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang}|${targetLang}`);
         const data = await res.json();
-        return data.responseData.translatedText || text;
+        return data.responseData?.translatedText || text;
       } catch (e) {
+        console.error("Translation error:", e);
         return text;
       }
     }
 
     // שליחת הודעה
-    window.sendText = async function() {
+    async function sendText() {
       const inputElem = document.getElementById('mainInput');
+      const sendBtn = document.getElementById('sendBtn');
       const text = inputElem.value.trim();
       if (!text) return;
 
@@ -277,38 +283,47 @@
       const targetLang = selectedLang === 'he' ? 'ru' : 'he';
       
       inputElem.value = '';
+      sendBtn.disabled = true;
 
-      // תרגום הטקסט
-      const translatedText = await translateText(text, selectedLang, targetLang);
-      
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + 
-                      ' ' + now.toLocaleDateString('he-IL');
+      try {
+        const translatedText = await translateText(text, selectedLang, targetLang);
+        
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) + 
+                        ' ' + now.toLocaleDateString('he-IL');
 
-      // שמירה ישירה ב-Firestore
-      await addDoc(roomRef, {
-        original: text,
-        translated: translatedText,
-        sourceLang: selectedLang,
-        clientId: clientId,
-        time: timeStr,
-        createdAt: serverTimestamp()
-      });
-    };
+        await addDoc(roomRef, {
+          original: text,
+          translated: translatedText,
+          sourceLang: selectedLang,
+          clientId: clientId,
+          time: timeStr,
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.error("Error sending message:", err);
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
 
     // ניקוי חדר
-    window.resetChat = async function() {
+    async function resetChat() {
       const pwd = prompt("הכנס סיסמה לאיפוס החדר הרגעי:");
       if (pwd !== "1234") {
         alert("סיסמה שגויה!");
         return;
       }
 
-      const snapshot = await getDocs(roomRef);
-      snapshot.forEach(async (document) => {
-        await deleteDoc(doc(db, "rooms", currentRoom, "messages", document.id));
-      });
-    };
+      try {
+        const snapshot = await getDocs(roomRef);
+        snapshot.forEach(async (document) => {
+          await deleteDoc(doc(db, "rooms", currentRoom, "messages", document.id));
+        });
+      } catch (e) {
+        console.error("Error resetting chat:", e);
+      }
+    }
 
     // הצגת הצ'אט במסך
     function renderChat(history) {
@@ -347,29 +362,32 @@
     function escapeHtml(text) {
       return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
     }
-  </script>
 
-  <script>
-    // פונקציות עזר של הממשק
-    function setLang(lang) {
-      const input = document.getElementById('mainInput');
-      if (lang === 'he') {
-        input.dir = 'rtl';
-        input.placeholder = 'הקלד משפט בעברית...';
-      } else {
-        input.dir = 'ltr';
-        input.placeholder = 'Введите текст на русском...';
-      }
-    }
+    // חיבור אירועים
+    document.getElementById('sendBtn').addEventListener('click', sendText);
+    document.getElementById('resetBtn').addEventListener('click', resetChat);
 
-    function checkSubmit(e) {
+    document.getElementById('mainInput').addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        window.sendText();
+        sendText();
       }
-    }
+    });
 
-    function unlockAdmin() {
+    document.querySelectorAll('input[name="chatLang"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const input = document.getElementById('mainInput');
+        if (e.target.value === 'he') {
+          input.dir = 'rtl';
+          input.placeholder = 'הקלד משפט בעברית...';
+        } else {
+          input.dir = 'ltr';
+          input.placeholder = 'Введите текст на русском...';
+        }
+      });
+    });
+
+    document.getElementById('adminBtn').addEventListener('click', () => {
       const pwd = prompt("הכנס סיסמת מנהל:");
       if (pwd === "1234") {
         document.getElementById('adminBtn').style.display = 'none';
@@ -379,9 +397,9 @@
       } else {
         alert("סיסמה שגויה.");
       }
-    }
+    });
 
-    function createNewRoomLink() {
+    document.getElementById('newRoomBtn').addEventListener('click', () => {
       const randomRoomId = 'room_' + Math.floor(Math.random() * 90000 + 10000);
       const baseUrl = window.location.href.split('?')[0];
       const newRoomUrl = baseUrl + '?room=' + randomRoomId;
@@ -391,7 +409,7 @@
       }, function() {
         prompt("הנה הקישור החדש לשיחה (העתק ידנית):", newRoomUrl);
       });
-    }
+    });
   </script>
 </body>
 </html>
