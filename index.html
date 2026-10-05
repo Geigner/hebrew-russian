@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>גשר שפות עברית רוסית</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 10px;
+      background-color: #f0f4f8;
+      color: #2d3748;
+    }
+    .container {
+      max-width: 750px;
+      margin: 0 auto;
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      height: 90vh;
+    }
+    .header-title {
+      background-color: #1B365D;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .admin-controls {
+      display: flex;
+      gap: 5px;
+    }
+    .btn-admin {
+      background-color: #4a5568;
+      color: white;
+      border: none;
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .btn-new-room, .btn-reset {
+      color: white;
+      border: none;
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      display: none;
+    }
+    .btn-new-room { background-color: #27ae60; }
+    .btn-reset { background-color: #e74c3c; }
+
+    .chat-stream {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      background: #f8fafc;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .message-bubble {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.4;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .bubble-user-1 { align-self: flex-start; background-color: #e3f2fd; border-right: 4px solid #1B365D; }
+    .bubble-user-2 { align-self: flex-end; background-color: #fff9c4; border-left: 4px solid #fbc02d; }
+    .bubble-user-3 { align-self: flex-start; background-color: #e8f5e9; border-right: 4px solid #2e7d32; }
+    .bubble-user-other { align-self: flex-end; background-color: #fce4ec; border-left: 4px solid #c2185b; }
+
+    .original-text { font-weight: 600; margin-bottom: 4px; }
+    .translated-text { color: #4a5568; font-size: 13px; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 4px; }
+    .msg-time { font-size: 10px; color: #a0aec0; text-align: left; margin-top: 2px; }
+    
+    .input-section {
+      background: #fff;
+      padding-top: 8px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .input-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .lang-selector {
+      font-size: 13px;
+      font-weight: bold;
+      color: #1B365D;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+    .lang-selector label { cursor: pointer; display: flex; align-items: center; gap: 5px; }
+    .input-row { display: flex; gap: 8px; }
+    textarea {
+      flex: 1;
+      height: 50px;
+      padding: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      box-sizing: border-box;
+    }
+    textarea:focus { border-color: #1B365D; outline: none; }
+    .btn-send {
+      background-color: #1B365D;
+      color: white;
+      border: none;
+      padding: 0 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    footer {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #4a5568;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header-title">
+      <span id="roomTitle">🗣️ גשר שפות עברית רוסית – חדר שיחה רגעי</span>
+      <div class="admin-controls">
+        <button id="adminBtn" class="btn-admin" onclick="unlockAdmin()">🔐 מנהל</button>
+        <button id="newRoomBtn" class="btn-new-room" onclick="createNewRoomLink()">🔗 צור קישור לשיחה חדשה</button>
+        <button id="resetBtn" class="btn-reset" onclick="resetChat()">🗑️ נקה חדר</button>
+      </div>
+    </div>
+
+    <div id="chatStream" class="chat-stream">
+      <div style="text-align: center; color: #a0aec0; font-size: 12px; margin-top: 20px;">
+        מתחבר ל-Firebase...
+      </div>
+    </div>
+
+    <div class="input-section">
+      <div class="input-controls">
+        <div class="lang-selector">
+          <span>שפת ההקלדה שלי:</span>
+          <label><input type="radio" name="chatLang" value="he" checked onclick="setLang('he')"> 🇮🇱 עברית</label>
+          <label><input type="radio" name="chatLang" value="ru" onclick="setLang('ru')"> 🇷🇺 Русский</label>
+        </div>
+      </div>
+      <div class="input-row">
+        <textarea id="mainInput" placeholder="הקלד משפט בעברית..." dir="rtl" onkeydown="checkSubmit(event)"></textarea>
+        <button class="btn-send" onclick="sendText()">שלח 🚀</button>
+      </div>
+    </div>
+
+    <footer>
+      <div><strong>היחידה לקידום נוער נוף הגליל</strong> | תוכנית היל"ה</div>
+      <div>© תשפ"ז | גיא אייגנר – מנהל השכלה | פיתוח וניהול פדגוגי</div>
+    </footer>
+  </div>
+
+  <!-- טעינת ה-SDK של Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      onSnapshot, 
+      query, 
+      orderBy, 
+      getDocs, 
+      deleteDoc, 
+      doc, 
+      serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // 🔴 הדבק כאן את מפתחות ה-FirebaseConfig מהפרויקט שלך!
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // אתחול Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ניהול חדר ולקוח
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentRoom = urlParams.get('room') || 'general_room';
+    
+    if (currentRoom !== 'general_room') {
+      document.getElementById('roomTitle').innerText = '🗣️ חדר שיחה: ' + currentRoom;
+    }
+
+    let clientId = localStorage.getItem('hila_client_id');
+    if (!clientId) {
+      clientId = 'client_' + Math.random().toString(36).substring(2, 9);
+      localStorage.setItem('hila_client_id', clientId);
+    }
+
+    let clientColorMap = {};
+    let colorClasses = ['bubble-user-1', 'bubble-user-2', 'bubble-user-3', 'bubble-user-other'];
+    let colorIndex = 0;
+
+    function getClientBubbleClass(id) {
+      if (!clientColorMap[id]) {
+        clientColorMap[id] = colorClasses[colorIndex % colorClasses.length];
+        colorIndex++;
+      }
+      return clientColorMap[id];
+    }
+
+    // 🟢 האזנה בזמן אמת להודעות (Real-time listener)
+    const roomRef = collection(db, "rooms", currentRoom, "messages");
+    const q = query(roomRef, orderBy("createdAt", "asc"));
+
+    onSnapshot(q, (snapshot) => {
+      const messages = [];
+      snapshot.forEach((doc) => {
+        messages.push({ id: doc.id, ...doc.data() });
+      });
+      renderChat(messages);
+    });
+
+    // 🌐 פונקציית תרגום חינמית (מייפה את הצורך ב-LanguageApp)
+    async function translateText(text, sourceLang, targetLang) {
+      try {
+        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang}|${targetLang}`);
+        const data = await res.json();
+        return data.responseData.translatedText || text;
+      } catch (e) {
+        return text; // במקרה של שגיאה יוחזר הטקסט המקורי
+      }
+    }
+
+    // שליחת הודעה
+    window.sendText = async function() {
+      const inputElem = document.getElementById('mainInput');
+      const text = inputElem.value.trim();
+      if (!text) return;
+
+      const selectedLang = document.querySelector('input[name="chatLang"]:checked').value;
+      const targetLang = selectedLang === 'he' ? 'ru' : 'he';
+      
+      inputElem.value = '';
+
+      // תרגום הטקסט
+      const translatedText = await translateText(text, selectedLang, targetLang);
+      
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + 
+                      ' ' + now.toLocaleDateString('he-IL');
+
+      // שמירה ישירה ב-Firestore
+      await addDoc(roomRef, {
+        original: text,
+        translated: translatedText,
+        sourceLang: selectedLang,
+        clientId: clientId,
+        time: timeStr,
+        createdAt: serverTimestamp()
+      });
+    };
+
+    // ניקוי חדר
+    window.resetChat = async function() {
+      const pwd = prompt("הכנס סיסמה לאיפוס החדר הרגעי:");
+      if (pwd !== "1234") { // תוכל לשנות לסיסמה שתרצה
+        alert("סיסמה שגויה!");
+        return;
+      }
+
+      const snapshot = await getDocs(roomRef);
+      snapshot.forEach(async (document) => {
+        await deleteDoc(doc(db, "rooms", currentRoom, "messages", document.id));
+      });
+    };
+
+    // הצגת הצ'אט במסך
+    function renderChat(history) {
+      const chatStream = document.getElementById('chatStream');
+      if (!history || history.length === 0) {
+        chatStream.innerHTML = '<div style="text-align: center; color: #a0aec0; font-size: 12px; margin-top: 20px;">החדר נקי. אפשר להתחיל להקליד...</div>';
+        return;
+      }
+
+      let html = '';
+      history.forEach(msg => {
+        const bubbleStyleClass = getClientBubbleClass(msg.clientId);
+        const isHebrewSource = (msg.sourceLang === 'he');
+        
+        if (isHebrewSource) {
+          html += `
+            <div class="message-bubble ${bubbleStyleClass}">
+              <div class="original-text" dir="rtl">🇮🇱 ${escapeHtml(msg.original)}</div>
+              <div class="translated-text" dir="ltr">🇷🇺 ${escapeHtml(msg.translated)}</div>
+              <div class="msg-time">${msg.time || ''}</div>
+            </div>`;
+        } else {
+          html += `
+            <div class="message-bubble ${bubbleStyleClass}">
+              <div class="original-text" dir="ltr">🇷🇺 ${escapeHtml(msg.original)}</div>
+              <div class="translated-text" dir="rtl">🇮🇱 ${escapeHtml(msg.translated)}</div>
+              <div class="msg-time">${msg.time || ''}</div>
+            </div>`;
+        }
+      });
+
+      chatStream.innerHTML = html;
+      chatStream.scrollTop = chatStream.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+      return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+    }
+  </script>
+
+  <script>
+    // פונקציות עזר של הממשק
+    function setLang(lang) {
+      const input = document.getElementById('mainInput');
+      if (lang === 'he') {
+        input.dir = 'rtl';
+        input.placeholder = 'הקלד משפט בעברית...';
+      } else {
+        input.dir = 'ltr';
+        input.placeholder = 'Введите текст на русском...';
+      }
+    }
+
+    function checkSubmit(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        window.sendText();
+      }
+    }
+
+    function unlockAdmin() {
+      const pwd = prompt("הכנס סיסמת מנהל:");
+      if (pwd === "1234") {
+        document.getElementById('adminBtn').style.display = 'none';
+        document.getElementById('newRoomBtn').style.display = 'inline-block';
+        document.getElementById('resetBtn').style.display = 'inline-block';
+        alert("התחברת כמנהל בהצלחה!");
+      } else {
+        alert("סיסמה שגויה.");
+      }
+    }
+
+    function createNewRoomLink() {
+      const randomRoomId = 'room_' + Math.floor(Math.random() * 90000 + 10000);
+      const baseUrl = window.location.href.split('?')[0];
+      const newRoomUrl = baseUrl + '?room=' + randomRoomId;
+      
+      navigator.clipboard.writeText(newRoomUrl).then(function() {
+        prompt("נוצר קישור חדש ונקי לשיחה! הקישור הועתק ללוח. העבר אותו לתלמיד:", newRoomUrl);
+      }, function() {
+        prompt("הנה הקישור החדש לשיחה (העתק ידנית):", newRoomUrl);
+      });
+    }
+  </script>
+</body>
+</html>
