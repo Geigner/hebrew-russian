@@ -203,14 +203,15 @@
       serverTimestamp 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 🔴 הדבק כאן את מפתחות ה-FirebaseConfig מהפרויקט שלך!
+    // 🟢 המפתחות המעודכנים של הפרויקט hebrew-russian
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyBvcY2Rm-kkbVtPUUsclpN_I-z0V7-AnEY",
+      authDomain: "hebrew-russian.firebaseapp.com",
+      projectId: "hebrew-russian",
+      storageBucket: "hebrew-russian.firebasestorage.app",
+      messagingSenderId: "540341284755",
+      appId: "1:540341284755:web:4c9847f131c494a775c266",
+      measurementId: "G-Y8ZNNK7HFS"
     };
 
     // אתחול Firebase
@@ -255,14 +256,14 @@
       renderChat(messages);
     });
 
-    // 🌐 פונקציית תרגום חינמית (מייפה את הצורך ב-LanguageApp)
+    // 🌐 פונקציית תרגום חינמית
     async function translateText(text, sourceLang, targetLang) {
       try {
         const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang}|${targetLang}`);
         const data = await res.json();
         return data.responseData.translatedText || text;
       } catch (e) {
-        return text; // במקרה של שגיאה יוחזר הטקסט המקורי
+        return text;
       }
     }
 
@@ -298,7 +299,7 @@
     // ניקוי חדר
     window.resetChat = async function() {
       const pwd = prompt("הכנס סיסמה לאיפוס החדר הרגעי:");
-      if (pwd !== "1234") { // תוכל לשנות לסיסמה שתרצה
+      if (pwd !== "1234") {
         alert("סיסמה שגויה!");
         return;
       }
