@@ -112,7 +112,8 @@
 
     .original-text { font-weight: 600; margin-bottom: 4px; }
     .translated-text { color: #4a5568; font-size: 13px; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 4px; }
-    .msg-time { font-size: 10px; color: #a0aec0; text-align: left; margin-top: 2px; }
+    /* תיקון ניגודיות בהתאם لدוח הנגישות */
+    .msg-time { font-size: 10px; color: #4a5568; text-align: left; margin-top: 2px; }
     
     .input-section {
       background: #fff;
@@ -177,7 +178,8 @@
 </head>
 <body>
 
-  <div class="container">
+  <!-- שימוש בתגית סמנטית main בהתאם להמלצת הנגישות -->
+  <main class="container">
     <div class="header-title">
       <span id="roomTitle">🗣️ גשר שפות עברית רוסית – חדר שיחה רגעי</span>
       <div class="admin-controls">
@@ -220,7 +222,7 @@
       <div><strong>היחידה לקידום נוער נוף הגליל</strong> | תוכנית היל"ה</div>
       <div>© תשפ"ז | גיא אייגנר – מנהל השכלה | פיתוח וניהול פדגוגי</div>
     </footer>
-  </div>
+  </main>
 
   <!-- טעינת ה-SDK של Firebase -->
   <script type="module">
