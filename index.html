@@ -1,537 +1,659 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>גשר שפות עברית רוסית</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 10px;
-      background-color: #f0f4f8;
-      color: #2d3748;
-    }
-    .container {
-      max-width: 750px;
-      margin: 0 auto;
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-      display: flex;
-      flex-direction: column;
-      height: 90vh;
-    }
-    .header-title {
-      background-color: #1B365D;
-      color: white;
-      padding: 10px 15px;
-      border-radius: 8px;
-      text-align: center;
-      font-size: 14px;
-      font-weight: bold;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 5px;
-    }
-    .admin-controls {
-      display: flex;
-      gap: 5px;
-      align-items: center;
-    }
-    .btn-admin {
-      background-color: #4a5568;
-      color: white;
-      border: none;
-      padding: 5px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      cursor: pointer;
-    }
-    .btn-new-room, .btn-reset, .btn-delete-room {
-      color: white;
-      border: none;
-      padding: 5px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      cursor: pointer;
-      display: none;
-    }
-    .btn-new-room { background-color: #27ae60; }
-    .btn-reset { background-color: #f39c12; }
-    .btn-delete-room { background-color: #e74c3c; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>גשר שפות עברית 🇮🇱 ⇄ 🇷🇺 רוסית - ניהול מערכת</title>
+    <style>
+        :root {
+            --primary-color: #334155; /* גוון כחול-אפור עמוק ורשמי שמתאים לממשק הרוסי */
+            --secondary-color: #0ea5e9;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            min-height: 100dvh;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 750px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px 10px;
+            box-sizing: border-box;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+        h2, h3 { color: var(--primary-color); margin-top: 0; }
+        .hidden { display: none !important; }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 1rem;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #1e293b; }
+        .room-link-box {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 8px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        .rooms-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        .room-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .room-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            flex: 1;
+            min-width: 200px;
+        }
+        .room-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .room-actions button {
+            width: auto;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            margin-top: 0;
+        }
+        .btn-success { background-color: #10b981; }
+        .btn-success:hover { background-color: #059669; }
+        .btn-whatsapp { background-color: #25d366; }
+        .btn-whatsapp:hover { background-color: #1ebe5d; }
+        .btn-warning { background-color: #f59e0b; color: white; }
+        .btn-warning:hover { background-color: #d97706; }
+        .btn-danger { background-color: #ef4444; }
+        .btn-danger:hover { background-color: #dc2626; }
 
-    /* פאנל ניהול חדרים פעילים */
-    .admin-rooms-panel {
-      background: #edf2f7;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 10px;
-      display: none;
-      font-size: 12px;
-    }
-    .admin-rooms-panel h4 { margin: 0 0 8px 0; color: #1B365D; font-size: 13px; display: flex; align-items: center; gap: 5px; }
-    .rooms-list-container { max-height: 100px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
-    .room-item-row { display: flex; justify-content: space-between; align-items: center; background: white; padding: 5px 8px; border-radius: 4px; border: 1px solid #e2e8f0; }
-    .room-item-info { display: flex; gap: 10px; align-items: center; }
-    .room-actions { display: flex; gap: 4px; }
-    .btn-action-small { padding: 2px 6px; font-size: 10px; border-radius: 3px; border: none; cursor: pointer; color: white; }
-    .btn-goto { background-color: #3182ce; }
-    .btn-clear-small { background-color: #d69e2e; }
-    .btn-delete-small { background-color: #e53e3e; }
-
-    .chat-stream {
-      flex: 1;
-      overflow-y: auto;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 12px;
-      background: #f8fafc;
-      margin-bottom: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .message-bubble {
-      max-width: 85%;
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-size: 14px;
-      line-height: 1.4;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    }
-    .bubble-user-1 { align-self: flex-start; background-color: #e3f2fd; border-right: 4px solid #1B365D; }
-    .bubble-user-2 { align-self: flex-end; background-color: #fff9c4; border-left: 4px solid #fbc02d; }
-    .bubble-user-3 { align-self: flex-start; background-color: #e8f5e9; border-right: 4px solid #2e7d32; }
-    .bubble-user-other { align-self: flex-end; background-color: #fce4ec; border-left: 4px solid #c2185b; }
-
-    .original-text { font-weight: 600; margin-bottom: 4px; }
-    .translated-text { color: #4a5568; font-size: 13px; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 4px; }
-    /* תיקון ניגודיות בהתאם لدוח הנגישות */
-    .msg-time { font-size: 10px; color: #4a5568; text-align: left; margin-top: 2px; }
-    
-    .input-section {
-      background: #fff;
-      padding-top: 8px;
-      border-top: 1px solid #e2e8f0;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .input-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .lang-selector {
-      font-size: 13px;
-      font-weight: bold;
-      color: #1B365D;
-      display: flex;
-      gap: 15px;
-      align-items: center;
-    }
-    .lang-selector label { cursor: pointer; display: flex; align-items: center; gap: 5px; }
-    .input-row { display: flex; gap: 8px; }
-    textarea {
-      flex: 1;
-      height: 50px;
-      padding: 8px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      font-size: 14px;
-      font-family: inherit;
-      resize: none;
-      box-sizing: border-box;
-    }
-    textarea:focus { border-color: #1B365D; outline: none; }
-    .btn-send {
-      background-color: #1B365D;
-      color: white;
-      border: none;
-      padding: 0 18px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 13px;
-    }
-    .btn-send:disabled {
-      background-color: #a0aec0;
-      cursor: not-allowed;
-    }
-    footer {
-      margin-top: 6px;
-      padding-top: 6px;
-      border-top: 1px solid #e2e8f0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 11px;
-      color: #4a5568;
-    }
-  </style>
+        #chat-interface {
+            background: var(--card-bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            width: 100%;
+            max-width: 800px;
+            height: 100vh;
+            height: 100dvh;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        @media (min-width: 768px) {
+            #chat-interface {
+                height: 90vh;
+                max-height: 850px;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+                border: 1px solid #e2e8f0;
+                margin: auto;
+            }
+        }
+        header.chat-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        header.chat-header h1 {
+            margin: 0;
+            font-size: 1.05rem;
+        }
+        .connection-status {
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 8px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        #chat-window {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background-color: #f1f5f9;
+            -webkit-overflow-scrolling: touch;
+        }
+        .message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            position: relative;
+        }
+        .message.hebrew {
+            align-self: flex-start;
+            background-color: #ffffff;
+            border-right: 5px solid var(--secondary-color);
+        }
+        .message.russian {
+            align-self: flex-end;
+            background-color: #f8fafc;
+            border-left: 5px solid var(--primary-color);
+            direction: ltr;
+            text-align: left;
+        }
+        .author-tag {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+            display: block;
+        }
+        .message .msg-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .speak-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0;
+            margin: 0;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            width: auto;
+        }
+        .speak-btn:hover { opacity: 1; background: none; }
+        .message .meta {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 6px;
+            display: block;
+        }
+        .input-area {
+            padding: 10px 15px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #475569;
+        }
+        .input-row {
+            display: flex;
+            gap: 8px;
+        }
+        textarea {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            resize: none;
+            height: 42px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+        }
+        button.send-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: auto;
+            margin-top: 0;
+            font-size: 1.25rem;
+        }
+        button.send-btn:hover { background-color: #1e293b; }
+        button.send-btn:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        .closed-notice {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #ef4444;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-align: center;
+            gap: 10px;
+        }
+        .site-footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #64748b;
+            padding: 8px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            line-height: 1.3;
+            flex-shrink: 0;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- שימוש בתגית סמנטית main בהתאם להמלצת הנגישות -->
-  <main class="container">
-    <div class="header-title">
-      <span id="roomTitle">🗣️ גשר שפות עברית רוסית – חדר שיחה רגעי</span>
-      <div class="admin-controls">
-        <button id="adminBtn" class="btn-admin">🔐 מנהל</button>
-        <button id="newRoomBtn" class="btn-new-room">🔗 צור קישור לשיחה חדשה</button>
-        <button id="resetBtn" class="btn-reset">🧹 אפס חדר</button>
-        <button id="deleteRoomBtn" class="btn-delete-room">🗑️ מחק חדר</button>
-      </div>
-    </div>
-
-    <!-- פאנל ניהול חדרים פעילים שיוצג רק למנהל -->
-    <div id="adminRoomsPanel" class="admin-rooms-panel">
-      <h4>📁 ניהול חדרים פעילים במערכת</h4>
-      <div id="roomsListContainer" class="rooms-list-container">
-        <span style="color: #718096;">טוען רשימת חדרים...</span>
-      </div>
-    </div>
-
-    <div id="chatStream" class="chat-stream">
-      <div style="text-align: center; color: #a0aec0; font-size: 12px; margin-top: 20px;">
-        מתחבר ל-Firebase...
-      </div>
-    </div>
-
-    <div class="input-section">
-      <div class="input-controls">
-        <div class="lang-selector">
-          <span>שפת ההקלדה שלי:</span>
-          <label><input type="radio" name="chatLang" value="he" checked> 🇮🇱 עברית</label>
-          <label><input type="radio" name="chatLang" value="ru"> 🇷🇺 Русский</label>
+    <main id="admin-container" class="container hidden">
+        <div id="login-screen" class="card" style="text-align: center;">
+            <h2>🔐 כניסת מנהל מערכת</h2>
+            <p>הכנס סיסמת ניהול כדי לגשת לדאשבורד:</p>
+            <input type="password" id="password-input" placeholder="סיסמה (ברירת מחדל: 1234)" onkeydown="if(event.key==='Enter') checkPassword()">
+            <button onclick="checkPassword()">הכנס למערכת</button>
         </div>
-      </div>
-      <div class="input-row">
-        <textarea id="mainInput" placeholder="הקלד משפט בעברית..." dir="rtl"></textarea>
-        <button id="sendBtn" class="btn-send">שלח 🚀</button>
-      </div>
-    </div>
 
-    <footer>
-      <div><strong>היחידה לקידום נוער נוף הגליל</strong> | תוכנית היל"ה</div>
-      <div>© תשפ"ז | גיא אייגנר – מנהל השכלה | פיתוח וניהול פדגוגי</div>
-    </footer>
-  </main>
+        <div id="dashboard" class="card hidden">
+            <h2>🛠️ לוח בקרה - ניהול חדרי שיחה (🇮🇱 ⇄ 🇷🇺 רוסית)</h2>
+            <p>צור חדר שיחה חדש, שתף לוואטסאפ או נהל את החדרים הפעילים:</p>
+            
+            <div style="margin-top: 20px;">
+                <h3>➕ יצירת חדר חדש</h3>
+                <input type="text" id="room-name-input" placeholder="שם החדר (למשל: קבוצה-רוסית)" onkeydown="if(event.key==='Enter') createRoomLink()">
+                <button onclick="createRoomLink()">צור קישור לחדר</button>
+                
+                <div id="result-area" class="hidden">
+                    <div id="generated-link" class="room-link-box"></div>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button class="btn-success" onclick="copyLink()" style="flex: 1;">העתק קישור 📋</button>
+                        <button class="btn-whatsapp" onclick="shareWhatsApp()" style="flex: 1;">שלח בוואטסאפ 📱</button>
+                    </div>
+                </div>
+            </div>
 
-  <!-- טעינת ה-SDK של Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { 
-      getFirestore, 
-      collection, 
-      addDoc, 
-      setDoc,
-      onSnapshot, 
-      query, 
-      orderBy, 
-      getDocs, 
-      deleteDoc, 
-      doc, 
-      serverTimestamp 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+            <hr style="margin: 25px 0; border: none; border-top: 1px solid #e2e8f0;">
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBvcY2Rm-kkbVtPUUsclpN_I-z0V7-AnEY",
-      authDomain: "hebrew-russian.firebaseapp.com",
-      projectId: "hebrew-russian",
-      storageBucket: "hebrew-russian.firebasestorage.app",
-      messagingSenderId: "540341284755",
-      appId: "1:540341284755:web:4c9847f131c494a775c266",
-      measurementId: "G-Y8ZNNK7HFS"
-    };
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>📋 חדרים פעילים במערכת</h3>
+                    <button style="width: auto; padding: 6px 12px; margin-top: 0; font-size: 0.85rem;" onclick="loadActiveRooms()">רענן רשימה 🔄</button>
+                </div>
+                <div id="rooms-container" class="rooms-list">
+                    <p style="color: #64748b; font-size: 0.9rem;">טוען חדרים פעילים מהענן...</p>
+                </div>
+            </div>
+        </div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+        <footer class="site-footer">
+            היחידה לקידום נוער נוף הגליל | תוכנית היל"ה<br>
+            תכנון וניהול פדגוגי: אייגנר גיא
+        </footer>
+    </main>
 
-    const urlParams = new URLSearchParams(window.location.search);
-    let currentRoom = urlParams.get('room') || 'general_room';
-    
-    if (currentRoom !== 'general_room') {
-      document.getElementById('roomTitle').innerText = '🗣️ חדר שיחה: ' + currentRoom;
-    }
+    <main id="chat-interface" class="hidden">
+        <header class="chat-header">
+            <h1 id="chat-main-title">🇮🇱 גשר שפות עברית ⇄ 🇷🇺 רוסית</h1>
+            <div id="connection-badge" class="connection-status">🟡 מתחבר...</div>
+        </header>
 
-    let clientId = localStorage.getItem('hila_client_id');
-    if (!clientId) {
-      clientId = 'client_' + Math.random().toString(36).substring(2, 9);
-      localStorage.setItem('hila_client_id', clientId);
-    }
+        <div id="chat-window"></div>
 
-    let clientColorMap = {};
-    let colorClasses = ['bubble-user-1', 'bubble-user-2', 'bubble-user-3', 'bubble-user-other'];
-    let colorIndex = 0;
-
-    function getClientBubbleClass(id) {
-      if (!clientColorMap[id]) {
-        clientColorMap[id] = colorClasses[colorIndex % colorClasses.length];
-        colorIndex++;
-      }
-      return clientColorMap[id];
-    }
-
-    // רישום אוטומטי של החדר הנוכחי בבסיס הנתונים (אם הוא לא הכללי)
-    async function registerRoomInDatabase(roomId) {
-      if (roomId === 'general_room') return;
-      try {
-        const roomRefDoc = doc(db, "rooms_list", roomId);
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) + ' ' + now.toLocaleDateString('he-IL');
-        await setDoc(roomRefDoc, { roomId: roomId, createdAt: timeStr, timestamp: serverTimestamp() }, { merge: true });
-      } catch (e) {
-        console.error("Error registering room:", e);
-      }
-    }
-    registerRoomInDatabase(currentRoom);
-
-    // האזנה בזמן אמת להודעות בחדר הנוכחי
-    const roomRef = collection(db, "rooms", currentRoom, "messages");
-    const q = query(roomRef, orderBy("createdAt", "asc"));
-
-    onSnapshot(q, (snapshot) => {
-      const messages = [];
-      snapshot.forEach((docSnap) => {
-        messages.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      renderChat(messages);
-    });
-
-    // פונקציית תרגום
-    async function translateText(text, sourceLang, targetLang) {
-      try {
-        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang}|${targetLang}`);
-        const data = await res.json();
-        return data.responseData?.translatedText || text;
-      } catch (e) {
-        console.error("Translation error:", e);
-        return text;
-      }
-    }
-
-    // שליחת הודעה
-    async function sendText() {
-      const inputElem = document.getElementById('mainInput');
-      const sendBtn = document.getElementById('sendBtn');
-      const text = inputElem.value.trim();
-      if (!text) return;
-
-      const selectedLang = document.querySelector('input[name="chatLang"]:checked').value;
-      const targetLang = selectedLang === 'he' ? 'ru' : 'he';
-      
-      inputElem.value = '';
-      sendBtn.disabled = true;
-
-      try {
-        const translatedText = await translateText(text, selectedLang, targetLang);
+        <div class="input-area" id="input-area-box">
+            <div class="controls-row">
+                <span>תרגום אוטומטי: <strong>🇮🇱 עברית ⇄ 🇷🇺 RU</strong></span>
+                <span id="room-indicator">חדר: כללי</span>
+            </div>
+            <div class="input-row">
+                <textarea id="message-input" placeholder="הקלד משפט... / Пишите здесь..." onkeydown="checkEnter(event)"></textarea>
+                <button id="send-btn-element" class="send-btn" onclick="sendMessage()" title="שלח / Отправить">🚀</button>
+            </div>
+        </div>
         
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) + 
-                        ' ' + now.toLocaleDateString('he-IL');
+        <footer class="site-footer">
+            היחידה לקידום נוער נוף הגליל | תוכנית היל"ה<br>
+            תכנון וניהול פדגוגי: אייגנר גיא
+        </footer>
+    </main>
 
-        await addDoc(roomRef, {
-          original: text,
-          translated: translatedText,
-          sourceLang: selectedLang,
-          clientId: clientId,
-          time: timeStr,
-          createdAt: serverTimestamp()
-        });
-      } catch (err) {
-        console.error("Error sending message:", err);
-      } finally {
-        sendBtn.disabled = false;
-      }
-    }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, setDoc, deleteDoc, doc, getDocs, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // איפוס חדר (ניקוי הודעות בלבד)
-    async function resetChat() {
-      if (!confirm("האם אתה בטוח שברצונך לנקות את כל ההודעות בחדר הנוכחי?")) return;
-      try {
-        const snapshot = await getDocs(roomRef);
-        snapshot.forEach(async (document) => {
-          await deleteDoc(doc(db, "rooms", currentRoom, "messages", document.id));
-        });
-        alert("החדר אופס בהצלחה!");
-      } catch (e) {
-        console.error("Error resetting chat:", e);
-      }
-    }
+        const firebaseConfig = {
+            apiKey: "AIzaSyBq_hHRhuFu6QfvxdkrN_S0rK17hZskIfo",
+            authDomain: "hebrew-french.firebaseapp.com",
+            projectId: "hebrew-french",
+            storageBucket: "hebrew-french.firebasestorage.app",
+            messagingSenderId: "1027136444686",
+            appId: "1:1027136444686:web:e02cc664abd4c1fc8adf5f"
+        };
 
-    // מחיקת חדר מלאה (הודעות + הרישום ברשימה)
-    async function deleteSystemRoom(targetRoomId) {
-      const roomIdToDelete = targetRoomId || currentRoom;
-      if (roomIdToDelete === 'general_room') {
-        alert("לא ניתן למחוק את החדר הכללי!");
-        return;
-      }
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const ADMIN_PASSWORD = "1234";
 
-      if (!confirm(`האם אתה בטוח שברצונך למחוק לגמרי את חדר ${roomIdToDelete}? פעולה זו תמחק את כל השיחות ותסגור את החדר לצמיתות.`)) return;
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('room');
 
-      try {
-        // מחיקת ההודעות בתוך החדר
-        const msgsRef = collection(db, "rooms", roomIdToDelete, "messages");
-        const msgsSnapshot = await getDocs(msgsRef);
-        for (const docSnap of msgsSnapshot.docs) {
-          await deleteDoc(doc(db, "rooms", roomIdToDelete, "messages", docSnap.id));
-        }
+        if (roomId) {
+            document.getElementById('admin-container').classList.add('hidden');
+            document.getElementById('chat-interface').classList.remove('hidden');
+            document.getElementById('room-indicator').innerText = `חדר: ${roomId}`;
 
-        // מחיקת הרישום מלוח החדרים הפעילים
-        await deleteDoc(doc(db, "rooms_list", roomIdToDelete));
+            let userName = localStorage.getItem('bridge_chat_username_ru');
+            if (!userName) {
+                userName = prompt("הכנס את שמך להצטרפות לשיחה:") || "משתמש/ת";
+                userName = userName.trim();
+                localStorage.setItem('bridge_chat_username_ru', userName);
+            }
 
-        alert("החדר נמחק בהצלחה מהענן!");
-        if (roomIdToDelete === currentRoom) {
-          window.location.href = window.location.pathname; // חזרה לדף הראשי
+            const chatWindow = document.getElementById('chat-window');
+            const inputAreaBox = document.getElementById('input-area-box');
+            const connectionBadge = document.getElementById('connection-badge');
+            const roomDocRef = doc(db, "rooms-russian", roomId);
+
+            onSnapshot(roomDocRef, (docSnap) => {
+                connectionBadge.innerHTML = '🟢 מחובר לענן';
+                if (!docSnap.exists()) {
+                    chatWindow.innerHTML = `
+                        <div class="closed-notice">
+                            <span>❌ חדר שיחה זה נסגר או נמחק על ידי מנהל המערכת.</span>
+                            <span style="font-size: 0.85rem; color: #64748b;">לא ניתן להמשיך לשוחח בחדר זה.</span>
+                        </div>
+                    `;
+                    inputAreaBox.style.display = 'none';
+                }
+            }, (error) => {
+                console.error("Connection error:", error);
+                connectionBadge.innerHTML = '🔴 בעיית חיבור';
+            });
+
+            const messagesRef = collection(db, "rooms-russian", roomId, "messages");
+            const q = query(messagesRef, orderBy("timestamp", "asc"));
+
+            onSnapshot(q, (snapshot) => {
+                chatWindow.innerHTML = '';
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const msgDiv = document.createElement('div');
+                    const isHebrew = data.originalLang === 'he';
+                    msgDiv.className = `message ${isHebrew ? 'hebrew' : 'russian'}`;
+                    
+                    const textToSpeak = isHebrew ? data.translatedText : data.originalText;
+                    const speakLang = isHebrew ? 'ru-RU' : 'he-IL';
+                    const author = data.author || "אורח/ת";
+
+                    msgDiv.innerHTML = `
+                        <span class="author-tag">👤 ${escapeHtml(author)} (${isHebrew ? '🇮🇱 IL' : '🇷🇺 RU'})</span>
+                        <div class="msg-content">
+                            <div>
+                                <div>${escapeHtml(data.originalText)}</div>
+                                <div style="margin-top: 4px; opacity: 0.85; font-weight: 500;">${escapeHtml(data.translatedText)}</div>
+                            </div>
+                            <button class="speak-btn" onclick="speakText('${escapeHtml(textToSpeak).replace(/'/g, "\\'")}', '${speakLang}')" title="השמע 🔊">🔊</button>
+                        </div>
+                        <span class="meta">${formatTime(data.timestamp)}</span>
+                    `;
+                    chatWindow.appendChild(msgDiv);
+                });
+                
+                setTimeout(() => {
+                    chatWindow.scrollTop = chatWindow.scrollHeight;
+                }, 100);
+            });
+
+            window.speakText = function(text, lang) {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = lang;
+                    utterance.rate = 0.9;
+                    window.speechSynthesis.speak(utterance);
+                } else {
+                    alert("דפדפן זה אינו תומך בהקראה קולית.");
+                }
+            };
+
+            window.sendMessage = async function() {
+                const input = document.getElementById('message-input');
+                const sendBtn = document.getElementById('send-btn-element');
+                const text = input.value.trim();
+                if (!text) return;
+
+                input.value = '';
+                sendBtn.disabled = true;
+                sendBtn.innerText = '⏳';
+
+                const isHebrew = /[\u0590-\u05FF]/.test(text);
+                const langPair = isHebrew ? 'he|ru' : 'ru|he';
+
+                let translatedText = "שגיאת תרגום";
+                try {
+                    const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langPair}`);
+                    const data = await response.json();
+                    if (data && data.responseData) {
+                        translatedText = data.responseData.translatedText;
+                    }
+                } catch (e) {
+                    console.error("Translation error:", e);
+                    translatedText = "[התרגום נכשל]";
+                }
+
+                try {
+                    await addDoc(messagesRef, {
+                        originalText: text,
+                        translatedText: translatedText,
+                        originalLang: isHebrew ? 'he' : 'ru',
+                        author: userName,
+                        timestamp: serverTimestamp()
+                    });
+                } catch (e) {
+                    console.error("Error adding message: ", e);
+                } finally {
+                    sendBtn.disabled = false;
+                    sendBtn.innerText = '🚀';
+                    setTimeout(() => {
+                        chatWindow.scrollTop = chatWindow.scrollHeight;
+                    }, 100);
+                }
+            };
+
+            window.checkEnter = function(event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            };
+
         } else {
-          loadActiveRoomsList(); // רענון הרשימה בפאנל
+            document.getElementById('chat-interface').classList.add('hidden');
+            document.getElementById('admin-container').classList.remove('hidden');
+
+            window.checkPassword = function() {
+                const pass = document.getElementById('password-input').value;
+                if (pass === ADMIN_PASSWORD) {
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('dashboard').classList.remove('hidden');
+                    loadActiveRooms();
+                } else {
+                    alert("סיסמה שגויה!");
+                }
+            }
+
+            window.createRoomLink = async function() {
+                const roomName = document.getElementById('room-name-input').value.trim();
+                if (!roomName) {
+                    alert("אנא הכנס שם תקין לחדר");
+                    return;
+                }
+                
+                try {
+                    const roomDocRef = doc(db, "rooms-russian", roomName);
+                    await setDoc(roomDocRef, { 
+                        createdAt: serverTimestamp(),
+                        roomName: roomName 
+                    }, { merge: true });
+
+                    const fullLink = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(roomName)}`;
+
+                    document.getElementById('generated-link').innerText = fullLink;
+                    document.getElementById('result-area').classList.remove('hidden');
+                    loadActiveRooms();
+                } catch (e) {
+                    console.error("Error creating room:", e);
+                    alert("שגיאה ביצירת החדר בענן.");
+                }
+            }
+
+            window.copyLink = function() {
+                const linkText = document.getElementById('generated-link').innerText;
+                navigator.clipboard.writeText(linkText).then(() => {
+                    alert("הקישור הועתק בהצלחה!");
+                });
+            }
+
+            window.shareWhatsApp = function() {
+                const linkText = document.getElementById('generated-link').innerText;
+                const message = encodeURIComponent(`שלום! מוזמנים להצטרף לחדר השיחה בעברית-רוסית בקישור הבא:\n${linkText}`);
+                window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
+            }
+
+            window.loadActiveRooms = async function() {
+                const container = document.getElementById('rooms-container');
+                container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">טוען חדרים מהענן...</p>';
+
+                try {
+                    const roomsSnapshot = await getDocs(collection(db, "rooms-russian"));
+                    container.innerHTML = '';
+
+                    if (roomsSnapshot.empty) {
+                        container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">אין עדיין חדרים פעילים במסד הנתונים. צור חדר ראשון למעלה!</p>';
+                        return;
+                    }
+
+                    roomsSnapshot.forEach((docSnap) => {
+                        const roomDocId = docSnap.id;
+                        const roomUrl = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(roomDocId)}`;
+
+                        const item = document.createElement('div');
+                        item.className = 'room-item';
+                        item.innerHTML = `
+                            <div class="room-info">
+                                <strong>🏷️ חדר: ${roomDocId}</strong>
+                                <span style="font-size: 0.75rem; color: #64748b; word-break: break-all;">${roomUrl}</span>
+                            </div>
+                            <div class="room-actions">
+                                <button onclick="window.open('${roomUrl}', '_blank')">הכנס 👁️</button>
+                                <button class="btn-success" onclick="navigator.clipboard.writeText('${roomUrl}').then(() => alert('הקישור הועתק!'))">העתק 📋</button>
+                                <button class="btn-whatsapp" onclick="window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent('הצטרפו לחדר השיחה: ${roomUrl}'), '_blank')">ואטסאפ 📱</button>
+                                <button class="btn-warning" onclick="resetRoomMessages('${roomDocId}')">איפוס 🔄</button>
+                                <button class="btn-danger" onclick="deleteRoom('${roomDocId}')">מחק 🗑️</button>
+                            </div>
+                        `;
+                        container.appendChild(item);
+                    });
+                } catch (e) {
+                    console.error("Error loading rooms:", e);
+                    container.innerHTML = '<p style="color: #ef4444; font-size: 0.9rem;">שגיאה בטעינת החדרים מהענן.</p>';
+                }
+            };
+
+            window.resetRoomMessages = async function(roomDocId) {
+                if (confirm(`האם אתה בטוח שברצונך לאפס את השיחה בחדר "${roomDocId}"? כל ההודעות הקודמות יימחקו, אך הקישור יישאר פעיל.`)) {
+                    try {
+                        const messagesRef = collection(db, "rooms-russian", roomDocId, "messages");
+                        const snapshot = await getDocs(messagesRef);
+                        
+                        const batch = writeBatch(db);
+                        snapshot.forEach((docSnap) => {
+                            batch.delete(docSnap.ref);
+                        });
+                        
+                        await batch.commit();
+                        alert("השיחה אופסה בהצלחה!");
+                    } catch (e) {
+                        console.error("Error resetting room messages:", e);
+                        alert("שגיאה באיפוס השיחה.");
+                    }
+                }
+            };
+
+            window.deleteRoom = async function(roomDocId) {
+                if (confirm(`האם אתה בטוח שברצונך למחוק את החדר "${roomDocId}" וכל ההיסטוריה שלו?`)) {
+                    try {
+                        await deleteDoc(doc(db, "rooms-russian", roomDocId));
+                        alert("החדר נמחק בהצלחה!");
+                        loadActiveRooms();
+                    } catch (e) {
+                        console.error("Error deleting room:", e);
+                        alert("שגיאה במחיקת החדר.");
+                    }
+                }
+            };
         }
-      } catch (e) {
-        console.error("Error deleting room:", e);
-        alert("שגיאה במחיקת החדר.");
-      }
-    }
 
-    // טעינת רשימת החדרים הפעילים לפאנל הניהול
-    function loadActiveRoomsList() {
-      const container = document.getElementById('roomsListContainer');
-      const roomsListRef = collection(db, "rooms_list");
-      
-      onSnapshot(roomsListRef, (snapshot) => {
-        if (snapshot.empty) {
-          container.innerHTML = '<span style="color: #718096;">אין חדרים פעילים כרגע במערכת.</span>';
-          return;
+        function escapeHtml(string) {
+            return String(string).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
-        let html = '';
-        snapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          const rId = data.roomId;
-          const creationTime = data.createdAt || '';
-          const isCurrent = (rId === currentRoom);
-          const highlightStyle = isCurrent ? 'border: 2px solid #3182ce; background: #ebf8ff;' : '';
-
-          html += `
-            <div class="room-item-row" style="${highlightStyle}">
-              <div class="room-item-info">
-                <strong>${rId}</strong>
-                <span style="color: #718096; font-size: 11px;">(${creationTime})</span>
-                ${isCurrent ? '<span style="color: #3182ce; font-weight: bold;">(נוכחי)</span>' : ''}
-              </div>
-              <div class="room-actions">
-                <button class="btn-action-small btn-goto" onclick="window.location.href='?room=${rId}'">מעבר</button>
-                <button class="btn-action-small btn-clear-small" onclick="window.location.href='?room=${rId}'">אפס</button>
-                <button class="btn-action-small btn-delete-small" onclick="deleteRoomGlobal('${rId}')">מחק</button>
-              </div>
-            </div>`;
-        });
-        container.innerHTML = html;
-      });
-    }
-
-    // פונקציית עזר גלובלית לכפתורי המחיקה בפאנל
-    window.deleteRoomGlobal = function(rId) {
-      deleteSystemRoom(rId);
-    };
-
-    // הצגת הצ'אט במסך
-    function renderChat(history) {
-      const chatStream = document.getElementById('chatStream');
-      if (!history || history.length === 0) {
-        chatStream.innerHTML = '<div style="text-align: center; color: #a0aec0; font-size: 12px; margin-top: 20px;">החדר נקי. אפשר להתחיל להקליד...</div>';
-        return;
-      }
-
-      let html = '';
-      history.forEach(msg => {
-        const bubbleStyleClass = getClientBubbleClass(msg.clientId);
-        const isHebrewSource = (msg.sourceLang === 'he');
-        
-        if (isHebrewSource) {
-          html += `
-            <div class="message-bubble ${bubbleStyleClass}">
-              <div class="original-text" dir="rtl">🇮🇱 ${escapeHtml(msg.original)}</div>
-              <div class="translated-text" dir="ltr">🇷🇺 ${escapeHtml(msg.translated)}</div>
-              <div class="msg-time">${msg.time || ''}</div>
-            </div>`;
-        } else {
-          html += `
-            <div class="message-bubble ${bubbleStyleClass}">
-              <div class="original-text" dir="ltr">🇷🇺 ${escapeHtml(msg.original)}</div>
-              <div class="translated-text" dir="rtl">🇮🇱 ${escapeHtml(msg.translated)}</div>
-              <div class="msg-time">${msg.time || ''}</div>
-            </div>`;
+        function formatTime(timestamp) {
+            if (!timestamp) return 'הרגע...';
+            const date = timestamp.toDate();
+            return date.toLocaleDateString('he-IL') + ' ' + date.toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'});
         }
-      });
-
-      chatStream.innerHTML = html;
-      chatStream.scrollTop = chatStream.scrollHeight;
-    }
-
-    function escapeHtml(text) {
-      return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
-    }
-
-    // חיבור אירועים
-    document.getElementById('sendBtn').addEventListener('click', sendText);
-    document.getElementById('resetBtn').addEventListener('click', resetChat);
-    document.getElementById('deleteRoomBtn').addEventListener('click', () => deleteSystemRoom(currentRoom));
-
-    document.getElementById('mainInput').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendText();
-      }
-    });
-
-    document.querySelectorAll('input[name="chatLang"]').forEach(radio => {
-      radio.addEventListener('change', (e) => {
-        const input = document.getElementById('mainInput');
-        if (e.target.value === 'he') {
-          input.dir = 'rtl';
-          input.placeholder = 'הקלד משפט בעברית...';
-        } else {
-          input.dir = 'ltr';
-          input.placeholder = 'Введите текст на русском...';
-        }
-      });
-    });
-
-    document.getElementById('adminBtn').addEventListener('click', () => {
-      const pwd = prompt("הכנס סיסמת מנהל:");
-      if (pwd === "1234") {
-        document.getElementById('adminBtn').style.display = 'none';
-        document.getElementById('newRoomBtn').style.display = 'inline-block';
-        document.getElementById('resetBtn').style.display = 'inline-block';
-        document.getElementById('deleteRoomBtn').style.display = 'inline-block';
-        document.getElementById('adminRoomsPanel').style.display = 'block';
-        loadActiveRoomsList();
-        alert("התחברת כמנהל בהצלחה!");
-      } else {
-        alert("סיסמה שגויה.");
-      }
-    });
-
-    document.getElementById('newRoomBtn').addEventListener('click', () => {
-      const randomRoomId = 'room_' + Math.floor(Math.random() * 90000 + 10000);
-      const baseUrl = window.location.href.split('?')[0];
-      const newRoomUrl = baseUrl + '?room=' + randomRoomId;
-      
-      registerRoomInDatabase(randomRoomId);
-
-      navigator.clipboard.writeText(newRoomUrl).then(function() {
-        prompt("נוצר קישור חדש ונקי לשיחה! הקישור הועתק ללוח. העבר אותו לתלמיד:", newRoomUrl);
-      }, function() {
-        prompt("הנה הקישור החדש לשיחה (העתק ידנית):", newRoomUrl);
-      });
-    });
-  </script>
+    </script>
 </body>
 </html>
