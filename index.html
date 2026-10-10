@@ -111,6 +111,8 @@
         .btn-success:hover { background-color: #059669; }
         .btn-whatsapp { background-color: #25d366; }
         .btn-whatsapp:hover { background-color: #1ebe5d; }
+        .btn-qr { background-color: #2563eb; }
+        .btn-qr:hover { background-color: #1d4ed8; }
         .btn-warning { background-color: #f59e0b; color: white; }
         .btn-warning:hover { background-color: #d97706; }
         .btn-danger { background-color: #ef4444; }
@@ -151,6 +153,11 @@
         header.chat-header h1 {
             margin: 0;
             font-size: 1.05rem;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .connection-status {
             font-size: 0.75rem;
@@ -301,6 +308,36 @@
         button.send-btn:hover { background-color: #0f172a; }
         button.send-btn:disabled { background-color: #94a3b8; cursor: not-allowed; }
         
+        /* QR Modal */
+        .qr-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .qr-modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .qr-modal-content img {
+            width: 200px;
+            height: 200px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
         .closed-notice {
             display: flex;
             flex-direction: column;
@@ -337,7 +374,7 @@
 
         <div id="dashboard" class="card hidden">
             <h2>🛠️ לוח בקרה - ניהול חדרי שיחה (🇮🇱 ⇄ 🇷🇺 רוסית)</h2>
-            <p>צור חדר שיחה חדש, שתף לוואטסאפ או נהל את החדרים הפעילים:</p>
+            <p>צור חדר שיחה חדש, שתף לוואטסאפ או הצג קוד QR:</p>
             
             <div style="margin-top: 20px;">
                 <h3>➕ יצירת חדר חדש</h3>
@@ -346,9 +383,10 @@
                 
                 <div id="result-area" class="hidden">
                     <div id="generated-link" class="room-link-box"></div>
-                    <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <button class="btn-success" onclick="copyLink()" style="flex: 1;">העתק קישור 📋</button>
-                        <button class="btn-whatsapp" onclick="shareWhatsApp()" style="flex: 1;">שלח בוואטסאפ 📱</button>
+                    <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+                        <button class="btn-success" onclick="copyLink()" style="flex: 1;">העתק 📋</button>
+                        <button class="btn-whatsapp" onclick="shareWhatsApp()" style="flex: 1;">וואטסאפ 📱</button>
+                        <button class="btn-qr" onclick="showQRModal(document.getElementById('generated-link').innerText)" style="flex: 1;">הצג QR 📷</button>
                     </div>
                 </div>
             </div>
@@ -375,7 +413,10 @@
     <main id="chat-interface" class="hidden">
         <header class="chat-header">
             <h1 id="chat-main-title">🇮🇱 גשר שפות עברית ⇄ 🇷🇺 רוסית</h1>
-            <div id="connection-badge" class="connection-status">🟡 מתחבר...</div>
+            <div class="header-actions">
+                <button class="btn-qr" onclick="showQRModal(window.location.href)" style="width: auto; padding: 5px 10px; margin-top: 0; font-size: 0.75rem;">הצג QR 📱</button>
+                <div id="connection-badge" class="connection-status">🟡 מתחבר...</div>
+            </div>
         </header>
 
         <div id="chat-window"></div>
@@ -398,6 +439,16 @@
         </footer>
     </main>
 
+    <!-- QR Modal Container -->
+    <div id="qr-modal-container" class="qr-modal hidden" onclick="hideQRModal()">
+        <div class="qr-modal-content" onclick="event.stopPropagation()">
+            <h3 style="margin: 0; color: #1e293b;">סרוק להצטרפות לחדר 📱</h3>
+            <div id="qrcode-wrapper"></div>
+            <p id="qr-url-text" style="font-size: 0.75rem; color: #64748b; word-break: break-all; margin: 0;"></p>
+            <button onclick="hideQRModal()" style="background-color: #64748b; margin-top: 5px;">סגור</button>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, setDoc, deleteDoc, doc, getDocs, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -417,6 +468,21 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('room');
+
+        window.showQRModal = function(url) {
+            const modal = document.getElementById('qr-modal-container');
+            const wrapper = document.getElementById('qrcode-wrapper');
+            const textEl = document.getElementById('qr-url-text');
+            
+            const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+            wrapper.innerHTML = `<img src="${qrImageUrl}" alt="QR Code">`;
+            textEl.innerText = url;
+            modal.classList.remove('hidden');
+        };
+
+        window.hideQRModal = function() {
+            document.getElementById('qr-modal-container').classList.add('hidden');
+        };
 
         if (roomId) {
             document.getElementById('admin-container').classList.add('hidden');
@@ -682,7 +748,7 @@
             }
 
             window.shareWhatsApp = function() {
-                const linkText = document.getElementById('generated-link').innerText;
+                The linkText = document.getElementById('generated-link').innerText;
                 const message = encodeURIComponent(`שלום! מוזמנים להצטרף לחדר השיחה בעברית-רוסית בקישור הבא:\n${linkText}`);
                 window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
             }
@@ -714,7 +780,8 @@
                             <div class="room-actions">
                                 <button onclick="window.open('${roomUrl}', '_blank')">הכנס 👁️</button>
                                 <button class="btn-success" onclick="navigator.clipboard.writeText('${roomUrl}').then(() => alert('הקישור הועתק!'))">העתק 📋</button>
-                                <button class="btn-whatsapp" onclick="window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent('הצטרפו לחדר השיחה: ${roomUrl}'), '_blank')">ואטסאפ 📱</button>
+                                <button class="btn-whatsapp" onclick="window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent('הצטרפו לחדר השיחה: ${roomUrl}'), '_blank')">וואטסאפ 📱</button>
+                                <button class="btn-qr" onclick="showQRModal('${roomUrl}')">QR 📷</button>
                                 <button class="btn-warning" onclick="resetRoomMessages('${roomDocId}')">איפוס 🔄</button>
                                 <button class="btn-danger" onclick="deleteRoom('${roomDocId}')">מחק 🗑️</button>
                             </div>
@@ -728,7 +795,7 @@
             };
 
             window.resetRoomMessages = async function(roomDocId) {
-                if (confirm(`האם אתה בטוח שברצונך לאפס את השיחה בחדר "${roomDocId}"? כל ההודעות הקודמות יימחקו, אך הקישור יישאר פעיל.`)) {
+                if (confirm(`האם אתה בטוח שברצונך לאפס את השיחה בחדር "${roomDocId}"? כל ההודעות הקודמות יימחקו, אך הקישור יישאר פעיל.`)) {
                     try {
                         const messagesRef = collection(db, "rooms", roomDocId, "messages");
                         const snapshot = await getDocs(messagesRef);
