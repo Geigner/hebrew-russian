@@ -6,8 +6,8 @@
     <title>גשר שפות עברית 🇮🇱 ⇄ 🇷🇺 רוסית - ניהול מערכת</title>
     <style>
         :root {
-            --primary-color: #334155; /* גוון כחול-אפור עמוק ורשמי שמתאים לממשק הרוסי */
-            --secondary-color: #0ea5e9;
+            --primary-color: #1e293b; /* כחול-אפור עמוק לממשק הרוסי */
+            --secondary-color: #3b82f6;
             --bg-color: #f1f5f9;
             --card-bg: #ffffff;
             --text-color: #1e293b;
@@ -61,7 +61,7 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        button:hover { background-color: #1e293b; }
+        button:hover { background-color: #0f172a; }
         .room-link-box {
             background: #f8fafc;
             border: 1px dashed #cbd5e1;
@@ -256,7 +256,7 @@
         textarea:focus {
             outline: none;
             border-color: var(--secondary-color);
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
         button.send-btn {
             background-color: var(--primary-color);
@@ -270,7 +270,7 @@
             margin-top: 0;
             font-size: 1.25rem;
         }
-        button.send-btn:hover { background-color: #1e293b; }
+        button.send-btn:hover { background-color: #0f172a; }
         button.send-btn:disabled { background-color: #94a3b8; cursor: not-allowed; }
         .closed-notice {
             display: flex;
@@ -357,7 +357,7 @@
                 <span id="room-indicator">חדר: כללי</span>
             </div>
             <div class="input-row">
-                <textarea id="message-input" placeholder="הקלד משפט... / Пишите здесь..." onkeydown="checkEnter(event)"></textarea>
+                <textarea id="message-input" placeholder="הקלד משפט... / Напишите..." onkeydown="checkEnter(event)"></textarea>
                 <button id="send-btn-element" class="send-btn" onclick="sendMessage()" title="שלח / Отправить">🚀</button>
             </div>
         </div>
@@ -432,7 +432,8 @@
                     const isHebrew = data.originalLang === 'he';
                     msgDiv.className = `message ${isHebrew ? 'hebrew' : 'russian'}`;
                     
-                    const textToSpeak = isHebrew ? data.translatedText : data.originalText;
+                    // תוקן: תמיד מקריאים את התרגום בשפה הנגדית
+                    const textToSpeak = data.translatedText; 
                     const speakLang = isHebrew ? 'ru-RU' : 'he-IL';
                     const author = data.author || "אורח/ת";
 
@@ -455,17 +456,32 @@
                 }, 100);
             });
 
-            window.speakText = function(text, lang) {
-                if ('speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = lang;
-                    utterance.rate = 0.9;
-                    window.speechSynthesis.speak(utterance);
-                } else {
+            window.speakText = function(text, langCode) {
+                if (!('speechSynthesis' in window)) {
                     alert("דפדפן זה אינו תומך בהקראה קולית.");
+                    return;
                 }
+
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = langCode;
+                utterance.rate = 0.9;
+
+                const voices = window.speechSynthesis.getVoices();
+                const targetVoice = voices.find(voice => voice.lang.startsWith(langCode.slice(0, 2)));
+                
+                if (targetVoice) {
+                    utterance.voice = targetVoice;
+                }
+
+                window.speechSynthesis.speak(utterance);
             };
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.onvoiceschanged = () => {
+                    window.speechSynthesis.getVoices();
+                };
+            }
 
             window.sendMessage = async function() {
                 const input = document.getElementById('message-input');
