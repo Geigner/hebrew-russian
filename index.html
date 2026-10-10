@@ -179,6 +179,8 @@
             line-height: 1.5;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
             position: relative;
+            cursor: pointer;
+            user-select: none;
         }
         .message.hebrew {
             align-self: flex-start;
@@ -209,27 +211,53 @@
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 1rem;
-            padding: 0;
+            font-size: 1.1rem;
+            padding: 4px;
             margin: 0;
             opacity: 0.7;
-            transition: opacity 0.2s;
+            transition: all 0.2s;
             width: auto;
+            border-radius: 50%;
         }
-        .speak-btn:hover { opacity: 1; background: none; }
+        .speak-btn:hover { opacity: 1; background: rgba(30, 41, 59, 0.1); }
+        
+        @keyframes pulse-ring-ru {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        .speak-btn.playing {
+            opacity: 1;
+            color: #3b82f6;
+            animation: pulse-ring-ru 1.5s infinite;
+            background: rgba(59, 130, 246, 0.15);
+        }
+
         .message .meta {
             font-size: 0.75rem;
             color: #64748b;
             margin-top: 6px;
             display: block;
         }
+        
+        .typing-indicator {
+            font-size: 0.8rem;
+            color: #64748b;
+            padding: 4px 12px;
+            font-style: italic;
+            min-height: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
         .input-area {
             padding: 10px 15px;
             background: white;
             border-top: 1px solid #e2e8f0;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
             flex-shrink: 0;
         }
         .controls-row {
@@ -272,6 +300,7 @@
         }
         button.send-btn:hover { background-color: #0f172a; }
         button.send-btn:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        
         .closed-notice {
             display: flex;
             flex-direction: column;
@@ -352,12 +381,13 @@
         <div id="chat-window"></div>
 
         <div class="input-area" id="input-area-box">
+            <div id="typing-status" class="typing-indicator"></div>
             <div class="controls-row">
                 <span>תרגום אוטומטי: <strong>🇮🇱 עברית ⇄ 🇷🇺 RU</strong></span>
                 <span id="room-indicator">חדר: כללי</span>
             </div>
             <div class="input-row">
-                <textarea id="message-input" placeholder="הקלד משפט... / Напишите..." onkeydown="checkEnter(event)"></textarea>
+                <textarea id="message-input" placeholder="הקלד משפט... / Напишите..." oninput="updateTypingStatus()" onkeydown="checkEnter(event)"></textarea>
                 <button id="send-btn-element" class="send-btn" onclick="sendMessage()" title="שלח / Отправить">🚀</button>
             </div>
         </div>
@@ -403,6 +433,7 @@
             const chatWindow = document.getElementById('chat-window');
             const inputAreaBox = document.getElementById('input-area-box');
             const connectionBadge = document.getElementById('connection-badge');
+            const typingStatus = document.getElementById('typing-status');
             const roomDocRef = doc(db, "rooms-russian", roomId);
 
             onSnapshot(roomDocRef, (docSnap) => {
@@ -415,6 +446,19 @@
                         </div>
                     `;
                     inputAreaBox.style.display = 'none';
+                    return;
+                }
+
+                const data = docSnap.data();
+                if (data && data.typing && data.typing.user && data.typing.user !== userName) {
+                    const isStillActive = (Date.now() - (data.typing.time?.toMillis() || 0)) < 6000;
+                    if (isStillActive) {
+                        typingStatus.innerHTML = `✏️ ${escapeHtml(data.typing.user)} מקליד/ה...`;
+                    } else {
+                        typingStatus.innerHTML = '';
+                    }
+                } else {
+                    typingStatus.innerHTML = '';
                 }
             }, (error) => {
                 console.error("Connection error:", error);
@@ -432,10 +476,21 @@
                     const isHebrew = data.originalLang === 'he';
                     msgDiv.className = `message ${isHebrew ? 'hebrew' : 'russian'}`;
                     
-                    // תוקן: תמיד מקריאים את התרגום בשפה הנגדית
                     const textToSpeak = data.translatedText; 
                     const speakLang = isHebrew ? 'ru-RU' : 'he-IL';
                     const author = data.author || "אורח/ת";
+
+                    msgDiv.addEventListener('dblclick', () => {
+                        copyMessageText(data.translatedText);
+                    });
+
+                    let touchTimer;
+                    msgDiv.addEventListener('touchstart', () => {
+                        touchTimer = setTimeout(() => {
+                            copyMessageText(data.translatedText);
+                        }, 800);
+                    });
+                    msgDiv.addEventListener('touchend', () => clearTimeout(touchTimer));
 
                     msgDiv.innerHTML = `
                         <span class="author-tag">👤 ${escapeHtml(author)} (${isHebrew ? '🇮🇱 IL' : '🇷🇺 RU'})</span>
@@ -444,9 +499,9 @@
                                 <div>${escapeHtml(data.originalText)}</div>
                                 <div style="margin-top: 4px; opacity: 0.85; font-weight: 500;">${escapeHtml(data.translatedText)}</div>
                             </div>
-                            <button class="speak-btn" onclick="speakText('${escapeHtml(textToSpeak).replace(/'/g, "\\'")}', '${speakLang}')" title="השמע 🔊">🔊</button>
+                            <button id="btn-${docSnap.id}" class="speak-btn" onclick="speakText('${escapeHtml(textToSpeak).replace(/'/g, "\\'")}', '${speakLang}', 'btn-${docSnap.id}')" title="השמע 🔊">🔊</button>
                         </div>
-                        <span class="meta">${formatTime(data.timestamp)}</span>
+                        <span class="meta">${formatTime(data.timestamp)} (לחץ כפול להעתקה)</span>
                     `;
                     chatWindow.appendChild(msgDiv);
                 });
@@ -456,13 +511,21 @@
                 }, 100);
             });
 
-            window.speakText = function(text, langCode) {
+            window.copyMessageText = function(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert("התרגום הועתק ללוח 📋");
+                });
+            };
+
+            window.speakText = function(text, langCode, btnId) {
                 if (!('speechSynthesis' in window)) {
                     alert("דפדפן זה אינו תומך בהקראה קולית.");
                     return;
                 }
 
                 window.speechSynthesis.cancel();
+                const btnElement = document.getElementById(btnId);
+                
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = langCode;
                 utterance.rate = 0.9;
@@ -474,6 +537,15 @@
                     utterance.voice = targetVoice;
                 }
 
+                if (btnElement) btnElement.classList.add('playing');
+
+                utterance.onend = () => {
+                    if (btnElement) btnElement.classList.remove('playing');
+                };
+                utterance.onerror = () => {
+                    if (btnElement) btnElement.classList.remove('playing');
+                };
+
                 window.speechSynthesis.speak(utterance);
             };
 
@@ -482,6 +554,30 @@
                     window.speechSynthesis.getVoices();
                 };
             }
+
+            let typingTimeout;
+            window.updateTypingStatus = async function() {
+                const input = document.getElementById('message-input');
+                if (input.value.trim().length > 0) {
+                    try {
+                        await setDoc(roomDocRef, {
+                            typing: {
+                                user: userName,
+                                time: serverTimestamp()
+                            }
+                        }, { merge: true });
+                    } catch(e) {}
+                }
+
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(async () => {
+                    try {
+                        await setDoc(roomDocRef, {
+                            typing: { user: '', time: serverTimestamp() }
+                        }, { merge: true });
+                    } catch(e) {}
+                }, 3000);
+            };
 
             window.sendMessage = async function() {
                 const input = document.getElementById('message-input');
@@ -492,6 +588,10 @@
                 input.value = '';
                 sendBtn.disabled = true;
                 sendBtn.innerText = '⏳';
+
+                try {
+                    await setDoc(roomDocRef, { typing: { user: '', time: serverTimestamp() } }, { merge: true });
+                } catch(e) {}
 
                 const isHebrew = /[\u0590-\u05FF]/.test(text);
                 const langPair = isHebrew ? 'he|ru' : 'ru|he';
