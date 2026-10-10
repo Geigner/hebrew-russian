@@ -6,8 +6,8 @@
     <title>גשר שפות עברית 🇮🇱 ⇄ 🇷🇺 רוסית - ניהול מערכת</title>
     <style>
         :root {
-            --primary-color: #b91c1c; /* אדום עמוק/בורדו לממשק הרוסי */
-            --secondary-color: #dc2626;
+            --primary-color: #1e293b; /* כחול-אפור רוסי כהה */
+            --secondary-color: #475569;
             --bg-color: #f1f5f9;
             --card-bg: #ffffff;
             --text-color: #1e293b;
@@ -61,7 +61,7 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        button:hover { background-color: #991b1b; }
+        button:hover { background-color: #0f172a; }
         .room-link-box {
             background: #f8fafc;
             border: 1px dashed #cbd5e1;
@@ -189,7 +189,7 @@
         }
         .message.russian {
             align-self: flex-end;
-            background-color: #fef2f2;
+            background-color: #f8fafc;
             border-left: 5px solid var(--primary-color);
             direction: ltr;
             text-align: left;
@@ -219,18 +219,18 @@
             width: auto;
             border-radius: 50%;
         }
-        .speak-btn:hover { opacity: 1; background: rgba(185, 28, 28, 0.1); }
+        .speak-btn:hover { opacity: 1; background: rgba(30, 41, 59, 0.1); }
         
         @keyframes pulse-ring-ru {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.6); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(71, 85, 105, 0.6); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(71, 85, 105, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(71, 85, 105, 0); }
         }
         .speak-btn.playing {
             opacity: 1;
-            color: #dc2626;
+            color: #334155;
             animation: pulse-ring-ru 1.5s infinite;
-            background: rgba(220, 38, 38, 0.15);
+            background: rgba(71, 85, 105, 0.15);
         }
 
         .message .meta {
@@ -284,7 +284,7 @@
         textarea:focus {
             outline: none;
             border-color: var(--secondary-color);
-            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+            box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.15);
         }
         button.send-btn {
             background-color: var(--primary-color);
@@ -298,7 +298,7 @@
             margin-top: 0;
             font-size: 1.25rem;
         }
-        button.send-btn:hover { background-color: #991b1b; }
+        button.send-btn:hover { background-color: #0f172a; }
         button.send-btn:disabled { background-color: #94a3b8; cursor: not-allowed; }
         
         .closed-notice {
@@ -403,12 +403,12 @@
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, setDoc, deleteDoc, doc, getDocs, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyBq_hHRhuFu6QfvxdkrN_S0rK17hZskIfo",
-            authDomain: "hebrew-french.firebaseapp.com",
-            projectId: "hebrew-french",
-            storageBucket: "hebrew-french.firebasestorage.app",
-            messagingSenderId: "1027136444686",
-            appId: "1:1027136444686:web:e02cc664abd4c1fc8adf5f"
+            apiKey: "AIzaSyBvcY2Rm-kkbVtPUUsclpN_I-z0V7-AnEY",
+            authDomain: "hebrew-russian.firebaseapp.com",
+            projectId: "hebrew-russian",
+            storageBucket: "hebrew-russian.firebasestorage.app",
+            messagingSenderId: "540341284755",
+            appId: "1:540341284755:web:4c9847f131c494a775c266"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -434,7 +434,7 @@
             const inputAreaBox = document.getElementById('input-area-box');
             const connectionBadge = document.getElementById('connection-badge');
             const typingStatus = document.getElementById('typing-status');
-            const roomDocRef = doc(db, "rooms-russian", roomId);
+            const roomDocRef = doc(db, "rooms", roomId);
 
             onSnapshot(roomDocRef, (docSnap) => {
                 connectionBadge.innerHTML = '🟢 מחובר לענן';
@@ -465,7 +465,7 @@
                 connectionBadge.innerHTML = '🔴 בעיית חיבור';
             });
 
-            const messagesRef = collection(db, "rooms-russian", roomId, "messages");
+            const messagesRef = collection(db, "rooms", roomId, "messages");
             const q = query(messagesRef, orderBy("timestamp", "asc"));
 
             onSnapshot(q, (snapshot) => {
@@ -657,7 +657,7 @@
                 }
                 
                 try {
-                    const roomDocRef = doc(db, "rooms-russian", roomName);
+                    const roomDocRef = doc(db, "rooms", roomName);
                     await setDoc(roomDocRef, { 
                         createdAt: serverTimestamp(),
                         roomName: roomName 
@@ -692,7 +692,7 @@
                 container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">טוען חדרים מהענן...</p>';
 
                 try {
-                    const roomsSnapshot = await getDocs(collection(db, "rooms-russian"));
+                    const roomsSnapshot = await getDocs(collection(db, "rooms"));
                     container.innerHTML = '';
 
                     if (roomsSnapshot.empty) {
@@ -730,7 +730,7 @@
             window.resetRoomMessages = async function(roomDocId) {
                 if (confirm(`האם אתה בטוח שברצונך לאפס את השיחה בחדר "${roomDocId}"? כל ההודעות הקודמות יימחקו, אך הקישור יישאר פעיל.`)) {
                     try {
-                        const messagesRef = collection(db, "rooms-russian", roomDocId, "messages");
+                        const messagesRef = collection(db, "rooms", roomDocId, "messages");
                         const snapshot = await getDocs(messagesRef);
                         
                         const batch = writeBatch(db);
@@ -750,8 +750,8 @@
             window.deleteRoom = async function(roomDocId) {
                 if (confirm(`האם אתה בטוח שברצונך למחוק את החדר "${roomDocId}" וכל ההיסטוריה שלו?`)) {
                     try {
-                        await deleteDoc(doc(db, "rooms-russian", roomDocId));
-                        alert("חדר נמחק בהצלחה!");
+                        await deleteDoc(doc(db, "rooms", roomDocId));
+                        alert("החדר נמחק בהצלחה!");
                         loadActiveRooms();
                     } catch (e) {
                         console.error("Error deleting room:", e);
