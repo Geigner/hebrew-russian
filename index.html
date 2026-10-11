@@ -393,7 +393,7 @@
 
             <div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3>📋 חדרים פעילים</h3>
+                    <h3>📋 חדרים פעילים (רוסית)</h3>
                     <button style="width: auto; padding: 4px 10px; margin-top: 0; font-size: 0.8rem;" onclick="loadActiveRooms()">רענן 🔄</button>
                 </div>
                 <div id="rooms-container" class="rooms-list">
@@ -442,20 +442,21 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, setDoc, deleteDoc, doc, getDocs, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, setDoc, deleteDoc, doc, getDocs, serverTimestamp, writeBatch, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCwiBVCup-VIjX4VYEE5ay2HlHoDAaIFyA",
-            authDomain: "hebrew-english.firebaseapp.com",
-            projectId: "hebrew-english",
-            storageBucket: "hebrew-english.firebasestorage.app",
+            authDomain: "hebrew-russian.firebaseapp.com",
+            projectId: "hebrew-russian",
+            storageBucket: "hebrew-russian.firebasestorage.app",
             messagingSenderId: "132280229208",
-            appId: "1:132280229208:web:aa671fef2c69aeffd6d92d"
+            appId: "1:132280229208:web:b12345ef2c69aeffd6d92d" // תוקן והותאם לפרויקט הרוסי
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const ADMIN_PASSWORD = "1234";
+        const CURRENT_LANG_TAG = "ru"; // תיוג מובהק לרוסית
 
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('room');
@@ -494,7 +495,10 @@
 
             async function updatePresence() {
                 try {
-                    await setDoc(roomDocRef, { participants: { [userName]: serverTimestamp() } }, { merge: true });
+                    await setDoc(roomDocRef, { 
+                        language: CURRENT_LANG_TAG,
+                        participants: { [userName]: serverTimestamp() } 
+                    }, { merge: true });
                 } catch(e) {}
             }
             updatePresence();
@@ -690,7 +694,11 @@
                 const roomName = document.getElementById('room-name-input').value.trim();
                 if (!roomName) return alert("אנא הכנס שם לחדר");
                 try {
-                    await setDoc(doc(db, "rooms", roomName), { createdAt: serverTimestamp(), roomName: roomName }, { merge: true });
+                    await setDoc(doc(db, "rooms", roomName), { 
+                        createdAt: serverTimestamp(), 
+                        roomName: roomName,
+                        language: CURRENT_LANG_TAG 
+                    }, { merge: true });
                     const fullLink = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(roomName)}`;
                     document.getElementById('generated-link').innerText = fullLink;
                     document.getElementById('result-area').classList.remove('hidden');
@@ -705,7 +713,10 @@
                 const container = document.getElementById('rooms-container');
                 container.innerHTML = '<p style="color: #64748b; font-size: 0.85rem;">טוען חדרים...</p>';
                 try {
-                    const snap = await getDocs(collection(db, "rooms"));
+                    // שליפה וסינון לפי שפת הרוסית בלבד
+                    const q = query(collection(db, "rooms"), where("language", "==", CURRENT_LANG_TAG));
+                    const snap = await getDocs(q);
+                    
                     container.innerHTML = '';
                     if (snap.empty) {
                         container.innerHTML = '<p style="color: #64748b; font-size: 0.85rem;">אין חדרים פעילים.</p>';
@@ -732,7 +743,7 @@
                         `;
                         container.appendChild(item);
                     });
-                } catch (e) { container.innerHTML = '<p style="color: #ef4444; font-size: 0.85rem;">שגיאה בטעינת החדרים.</p>'; }
+                } catch (e) { container.innerHTML = '<p style="color: #ef4444; font-size: 0.85rem;">שגיאה בטעינת החדרים (ייתכן שנדרש אינדקס ב-Firebase Firestore עבור שאילתה זו).</p>'; }
             };
 
             window.resetRoomMessages = async function(id) {
